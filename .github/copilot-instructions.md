@@ -13,7 +13,7 @@ ShopGenius is a modern, AI-powered e-commerce storefront builder featuring:
 - **Build Tool**: Vite 6.2.0
 - **UI Components**: Custom components with Lucide React icons
 - **AI Integration**: Google Gemini AI (@google/genai v1.34.0)
-- **Styling**: Tailwind CSS (utility classes)
+- **Styling**: Tailwind CSS (via CDN, configured in index.html)
 - **State Management**: React hooks (useState, useEffect)
 - **Data Persistence**: LocalStorage (mock API layer)
 
@@ -91,14 +91,18 @@ GEMINI_API_KEY=your_gemini_api_key_here
 - **Constants**: UPPER_SNAKE_CASE for configuration (e.g., `SYSTEM_CONFIG`)
 
 ### Styling
-- Use Tailwind CSS utility classes
+- Use Tailwind CSS utility classes (loaded via CDN from index.html)
+- Custom Tailwind configuration in index.html extends default theme
 - Support dark mode with `dark:` variants
 - Follow existing color scheme:
-  - Primary: `shopify-green` (custom color)
-  - Text: `gray-900` / `white` (dark mode)
+  - Primary: `shopify-green` (#008060)
+  - Dark: `shopify-dark` (#004C3F)
+  - Text: `shopify-text` (#202223) / `white` (dark mode)
+  - Subdued: `shopify-subdued` (#6D7175)
   - Background: `white` / `gray-800` (dark mode)
 - Add smooth transitions for interactive elements
 - Use `group` and `group-hover` for nested hover effects
+- Custom animations available: `animate-fade-in`, `animate-slide-up`
 
 ### State Management
 - Use `useState` for component-level state
@@ -115,9 +119,10 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 ### AI Integration
 - AI models configured in `constants.ts` under `SYSTEM_CONFIG.MODELS`
-- Use `gemini-3-flash-preview` for both generation and chat
+- Current model: `gemini-3-flash-preview` (used for both generation and chat)
 - Keep AI prompts clear and specific
 - Handle AI responses asynchronously
+- Note: Model names in constants.ts may differ from public Gemini API naming
 
 ## Key Features to Maintain
 
@@ -219,4 +224,4 @@ GEMINI_API_KEY=your_gemini_api_key_here
 - Review `types.ts` for data structures
 - Look at `constants.ts` for configuration
 - Examine `services/api.ts` for data operations
-- AI Studio link: https://ai.studio/apps/drive/1PPtIvKFR4hlsxjg-qDFvfMza4j_Nho8Q
+- Refer to [Google AI Studio](https://ai.google.dev/aistudio) for AI integration questions
