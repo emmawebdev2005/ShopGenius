@@ -23,7 +23,7 @@ ShopGenius is a modern, AI-powered e-commerce storefront builder featuring:
 # Install dependencies
 npm install
 
-# Start development server (runs on port 3000)
+# Start development server (configured to run on port 3000 in vite.config.ts)
 npm run dev
 
 # Build for production
@@ -35,10 +35,12 @@ npm run preview
 
 ## Environment Setup
 
-Create a `.env.local` file with:
+Create a `.env.local` file in the root directory with:
 ```
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
+
+**Note**: The Vite config maps this to both `process.env.API_KEY` and `process.env.GEMINI_API_KEY` for flexibility.
 
 ## Project Structure
 
