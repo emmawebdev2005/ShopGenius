@@ -1,14 +1,12 @@
-import { GoogleGenAI as AIClient, Type } from "@google/genai";
+import { GoogleGenAI as IntelligenceProvider, Type } from "@google/genai";
 import { Product } from '../types';
+import { SYSTEM_CONFIG } from '../constants';
 
-// Initialize the client with the environment key
-const client = new AIClient({ apiKey: process.env.API_KEY });
+// Service initialization
+const provider = new IntelligenceProvider({ apiKey: process.env.API_KEY });
 
-/**
- * Configuration for the shopping assistant persona.
- * Defines the tone and capabilities of the bot.
- */
-const ASSISTANT_CONFIG = `
+// Agent Persona Configuration
+const AGENT_DIRECTIVES = `
 You are ShopBot, a friendly and knowledgeable shopping assistant for "ShopGenius".
 Your goal is to help customers find products from the available catalog.
 Be concise, helpful, and enthusiastic.
@@ -17,17 +15,16 @@ Always be polite.
 `;
 
 /**
- * Generates structured product metadata from a loose text description.
- * Useful for quickly populating the store catalog.
+ * Transforms unstructured text input into structured product metadata.
  * 
- * @param inputDescription - Raw text describing the item to sell.
- * @returns Partial product object containing title, description, price, etc.
+ * @param description - Raw input description of the inventory item.
+ * @returns Partial product entity with generated metadata.
  */
-export const generateProductMetadata = async (inputDescription: string): Promise<Partial<Product>> => {
+export const generateProductMetadata = async (description: string): Promise<Partial<Product>> => {
   try {
-    const response = await client.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Create a compelling e-commerce product listing based on this input: "${inputDescription}".
+    const response = await provider.models.generateContent({
+      model: SYSTEM_CONFIG.MODELS.GENERATION,
+      contents: `Create a compelling e-commerce product listing based on this input: "${description}".
       Generate a catchy title, a persuasive marketing description (2-3 sentences), a realistic price (USD), a category, and 3 relevant tags.`,
       config: {
         responseMimeType: "application/json",
@@ -49,22 +46,22 @@ export const generateProductMetadata = async (inputDescription: string): Promise
     });
 
     const output = response.text;
-    if (!output) throw new Error("Service returned empty response");
+    if (!output) throw new Error("Provider returned empty response");
     
     return JSON.parse(output) as Partial<Product>;
   } catch (err) {
-    console.error("Metadata generation failed:", err);
+    console.error("Metadata generation error:", err);
     throw err;
   }
 };
 
 /**
- * Process a user message against the current product catalog.
+ * Executes a conversational query against the inventory context.
  * 
- * @param history - Conversation history.
- * @param message - Current user message.
- * @param inventory - Current list of products to ground the answer.
- * @returns The assistant's response text.
+ * @param history - Conversational context history.
+ * @param message - Inbound user query.
+ * @param inventory - Active product catalog for context grounding.
+ * @returns Agent response string.
  */
 export const queryAssistant = async (
   history: { role: string; parts: { text: string }[] }[],
@@ -72,15 +69,15 @@ export const queryAssistant = async (
   inventory: Product[]
 ): Promise<string> => {
   try {
-    // Context injection for inventory awareness
-    const inventoryContext = inventory
+    // Inventory Context Injection
+    const contextData = inventory
       .map(item => `${item.title} ($${item.price}): ${item.description}`)
       .join('\n');
     
-    const chatSession = client.chats.create({
-      model: 'gemini-3-flash-preview',
+    const session = provider.chats.create({
+      model: SYSTEM_CONFIG.MODELS.CHAT,
       config: {
-        systemInstruction: `${ASSISTANT_CONFIG}\n\nCurrent Product Catalog:\n${inventoryContext}`
+        systemInstruction: `${AGENT_DIRECTIVES}\n\nCurrent Product Catalog:\n${contextData}`
       },
       history: history.map(entry => ({
         role: entry.role,
@@ -88,10 +85,10 @@ export const queryAssistant = async (
       }))
     });
 
-    const result = await chatSession.sendMessage({ message });
-    return result.text || "Connection unstable. Please try again.";
+    const result = await session.sendMessage({ message });
+    return result.text || "Service response empty.";
   } catch (err) {
-    console.error("Assistant query failed:", err);
-    return "I'm experiencing a temporary service interruption. Please try again shortly.";
+    console.error("Agent query error:", err);
+    return "Service temporarily unavailable.";
   }
 };
